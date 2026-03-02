@@ -3,17 +3,39 @@ library(dplyr)
 library(purrr)
 library(glue)
 
-in_dir <- "/Users/jasonrussell/Documents/INPUTS/sila_A001"
-out_dir <- "/Users/jasonrussell/Documents/OUTPUTS/sila_A001"
+in_dir <- "/Users/jasonkru/Documents/inputs/ABCDS/csvs"
+out_dir <- "/Users/jasonkru/Documents/outputs/ABCDS/SILA"
 
-#import qdec and sclimbic data
-qdec <- read.table(glue("{in_dir}/long.qdec.table.dat"), header = TRUE)
-centiloid <- read.csv(glue("{in_dir}/ABC_DS_centiloid.csv"))
+#import centiloid and age data
+centiloid <- read.csv(glue("{in_dir}/centiloids.csv"))
+age <- read.csv(glue("{in_dir}/age_at_event.csv"))
 
-#add event to subject id in centiloid table
-centiloid$fsid <- glue("{as.character(centiloid$subject_label)}_e{as.character(centiloid$event_sequence)}")
+#make fsid column in age dataframe
+age$fsid <- glue("{as.character(age$subject_label)}_e{as.character(age$event_sequence)}")
+
+#select fsid, age_at_visit, subject_label and amy_latency_in_days from age dataframe
+age <- age %>%
+  dplyr::select(fsid, age_at_visit, subject_label, amy_latency_in_days, mri_latency_in_days)
+
+#rename ID column to fsid
+colnames(centiloid)[colnames(centiloid) == "ID"] <- "fsid"
+
+#select fsid and centiloid_value from centiloid dataframe
+centiloid <- centiloid %>%
+  dplyr::select(fsid, Centiloids)
 
 #combine dataframes based on subject_id/event code
-data <- merge(qdec, centiloid, by="fsid")
+data <- inner_join(age, centiloid, by="fsid")
+
+
+#amy_latency_in_days == NA and fsid ends with _e1 set to 0
+data$amy_latency_in_days[is.na(data$amy_latency_in_days) & grepl("_e1", data$fsid)] <- 0
+
+#if amy_latency_in_days == NA fill with value from mri_latency_in_days
+data$amy_latency_in_days[is.na(data$amy_latency_in_days)] <- data$mri_latency_in_days[is.na(data$amy_latency_in_days)]
+
+#drop mri_latency_in_days column
+data <- data %>%
+  dplyr::select(-mri_latency_in_days)
 
 write.csv(data, file = glue("{out_dir}/ABC_DS_sila_tall.csv"))

@@ -1,11 +1,11 @@
 %script to estimate years from disease onset in the ABCDS cohort
 
 %% add filepath to SILA
-path = '/Users/jasonrussell/Documents/code/SILA-AD-Biomarker';
+path = '/Users/jasonkru/Documents/atri_code/SILA-AD-Biomarker';
 addpath(fullfile(path));
 
 %% import data in long form
-t = readtable('/Users/jasonrussell/Documents/OUTPUTS/sila_A001/ABC_DS_sila_tall.csv');
+t = readtable('/Users/jasonkru/Documents/outputs/ABCDS/SILA/ABC_DS_sila_tall.csv');
 
 %% train the SILA model
 disp('Training the SILA model using SILA.m')
@@ -74,4 +74,4 @@ xlabel('Estimated time to threshold (years)'),ylabel('Centiloid')
 legend({'Individual Case Observations','SILA Modeled Values'},'Location','northwest')
 
 %% Write estimated years to dz to csv
-writetable(test, '/Users/jasonrussell/Documents/OUTPUTS/sila_A001/est_AB+_chron.csv')
+writetable(test, '/Users/jasonkru/Documents/outputs/ABCDS/SILA/est_AB+_chron.csv')
